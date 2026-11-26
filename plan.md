@@ -4,6 +4,8 @@
 > **What's being built now is in [`v0.md`](v0.md)**: the version just for me, running locally, with no packaging, installers or other users. Everything here that isn't in v0.md is for later.
 >
 > In §6, ~~struck through~~ = done (updated 2026-11-24).
+>
+> **Change of plan (2026-11-26):** my own copy will run online behind a login, so I can use it from any machine (§4.11). The install-it-yourself model below still applies to other people's copies later.
 
 ## 1. What this is
 
@@ -21,7 +23,7 @@ An **agent** sits across all three. It can see the canvas, read the notes and kn
 
 ## 2. Principles
 
-- **Install it, own it.** An app people install and run on their own computer (the Obsidian model). Everything lives in local files. There's no server, no accounts, and no one else ever holds your data or logins.
+- **Install it, own it.** An app people install and run on their own computer (the Obsidian model). Everything lives in local files. There's no server, no accounts, and no one else ever holds your data or logins. *(Exception: my own copy is hosted, with one login that only I can use. See §4.11.)*
 - **Web, not flash.** Design reference is Spotify's web app: dark, dense, calm, sidebar + main area, quick and responsive, almost no decorative animation. Motion only where it explains something (hover-to-play video, drag feedback).
 - **My brain's clustering, not a grid.** Things land neatly (auto layout) but stay free to drag anywhere.
 - **Keyboard first.** Every common action has a shortcut that works the way Figma or macOS already taught me.
@@ -159,6 +161,53 @@ Reference: Tumblr's "Edit HTML" theme customiser, where the code is on one side 
 - All data is plain local files in a folder the user picks (canvases, notes, media, Taste). Back it up or sync it with whatever they already use (iCloud Drive, Dropbox, git).
 - No accounts, no server.
 - Sharing = **export**: a canvas as an image, a PDF or a static web page the user can host wherever they like.
+- My own copy is the exception: it's hosted, with a login (§4.11).
+
+### 4.11 My copy online, with a login
+
+**Goal:** open my canvases, notes and pages at a web address from any computer, with a login that only I can pass. It's the same app as v0, just running on a server instead of my laptop.
+
+**Shape: one small server with its own disk.** The Hono server already stores everything as plain files (`canvases/`, `media/`, `pages/`, `notes/`, `trash/`). If those files live on a persistent disk attached to the server, the storage code barely changes. Moving to a cloud database or object storage can wait until the disk becomes a problem.
+
+- **Build:** `vite build` outputs the client, and the Hono server serves it alongside `/api` and `/media` on one port. Add an `npm start` (production) next to `npm run dev`.
+- **HTTPS:** handled by the host. The session cookie is `Secure`, so it's never sent over plain HTTP.
+- **Config by environment variable:** `DATA_DIR` (the disk), `PORT`, the login password hash and the session secret. Keep the secrets in the host's secret store, never in the repo.
+
+**Login (one user: me)**
+- A login page with a password. The server keeps only a hash of the password (scrypt or argon2) and compares against it.
+- A passkey could be added later, so I can sign in with Touch ID.
+- A successful login sets a signed, `HttpOnly`, `Secure`, `SameSite=Lax` session cookie that lasts about 30 days. Logging out clears it.
+- **Every route except the login page and its assets requires the cookie.** That includes `/media/*`, because my images and videos are as private as the canvases. Requests without the cookie get a 401, and the app shows the login page.
+- Slow down repeated wrong passwords (a few tries, then a growing wait), so the password can't be guessed by brute force.
+- State-changing requests (POST, PATCH, PUT, DELETE) only accept JSON bodies with a matching `Origin` header, so other sites can't send them using my cookie.
+
+**Things that become risky once the app is public**
+- **Link previews (`/api/unfurl`) and image downloads** make the server fetch any URL it's given. Behind the login only I can trigger them, but block private and internal addresses anyway (localhost, 10.x, 169.254.x, and so on), so the server can't be pointed at its own host's internals.
+- **Pages previews** stay in a sandboxed iframe without `allow-same-origin`, as they are now, so page scripts can't read the session or call the API.
+- **Uploads** are allowed up to 500 MB. The host's request size limit and the disk size both have to fit that.
+
+**Data**
+- **Moving in:** copy `~/Diary` up to the server's disk once. After that, the online copy is the only real one.
+- **Local development** uses a throwaway `DATA_DIR`, or a downloaded copy of the data, and never writes to the online data.
+- **Backups:** daily snapshots of the disk (most hosts offer volume snapshots), plus an occasional full download to my personal machine. Trash still works the same way: deleting moves files to `trash/`.
+- Never run two servers against the same data. Autosave rewrites whole canvas files, so the last write wins.
+
+**Accounts and money:** sign up for the host with my personal email and a personal card, under the personal GitHub (`joycexjiang/braindump`). No Ramp accounts, email or keys.
+
+**Host (to decide):** anything that gives one always-on server with a persistent disk works. Examples: Fly.io (machine plus volume), Railway (service plus volume), or a small VPS such as Hetzner. Expect a few dollars a month. Deploys can run from `main` with a GitHub Action, or by hand to start with.
+
+**Steps**
+1. Production build and `npm start`, with one port serving the client, `/api` and `/media`.
+2. Login: password hash, session cookie, a check on every route, rate limiting, the Origin check, and a login page in the app's style (`style.md`).
+3. Block private addresses in unfurl and image downloads.
+4. Pick a host, attach a disk, set the secrets, and deploy.
+5. Upload `~/Diary`, turn on snapshots, and do one restore test.
+6. Deploy on every push to `main` (optional).
+
+**Done when:**
+- From another computer, I log in, paste an image onto today's page, and see it on this laptop after a refresh.
+- Logged out, `/api/canvases` and a `/media/...` link both return 401.
+- A snapshot has been restored once and worked.
 
 ## 5. Build vs. buy: tldraw SDK or a custom canvas?
 
@@ -236,6 +285,10 @@ First, work out *why* it failed. Each cause has a different next step:
 - Spotify-web-like visual design.
 - ✅ Done when: I can rebuild my "graphic design of the body" Figma page here faster than in Figma, with videos and links included.
 
+**Phase 1b: my copy online (§4.11)**
+- Production build, a single-user login on every route, hosted on one server with a persistent disk, `~/Diary` moved up, backups on.
+- ✅ Done when: I can use it from my other computer, and nothing loads when logged out.
+
 **Phase 2: notes + import**
 - Notes view in the sidebar with hover timestamps.
 - Import a list of URLs. Import a Pinterest board. Figma paste (whatever the spike says is possible).
@@ -286,3 +339,4 @@ Real-time multiplayer, comments, teams/permissions, vector design tools (pen pat
 9. Day pages: does a new day *always* get a fresh canvas, or only once I add something? Can one day hold several canvases (one per project), shown as several cards under one date?
 10. In the day-scroll view, newest at the bottom (like a chat or diary) or at the top (like a feed)?
 11. Should Notes join the day scroll too, so a day shows that day's notes next to its canvas?
+12. Which host for my online copy (§4.11): Fly.io, Railway or a small VPS? Password only, or a passkey too?
