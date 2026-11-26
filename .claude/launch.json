@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "canvas-dev-test-data",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "env": { "DATA_DIR": "/private/tmp/claude-501/canvas-m0-test-data" },
+      "port": 4600
+    }
+  ]
+}

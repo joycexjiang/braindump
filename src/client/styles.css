@@ -1,0 +1,766 @@
+/* Rules (see style.md): light only, 4px grid, weight 400 everywhere, concentric rounded corners. */
+:root {
+  /* colour: light only, there is no dark theme */
+  --bg: #ffffff;
+  --sidebar: #f6f6f6;
+  --surface: #efefef;
+  --surface-hover: #e4e4e4;
+  --editor: #ffffff; /* CodeMirror default light theme */
+  --text: #121212;
+  --text-muted: #6a6a6a;
+  --accent: #1ed760;
+  --danger: #d0303e;
+
+  /* 4px grid: every spacing, size, radius and line-height is a multiple of 4 */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s6: 24px;
+  --s8: 32px;
+
+  /* radii. Concentric rule: outer radius = inner radius + the padding between them */
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+
+  /* the one shadow: minimal, soft and even all around. Use it for every shadow. */
+  --shadow: 0 0 var(--s4) rgb(0 0 0 / 0.08);
+  --r-pill: 999px;
+
+  /* type: one weight (400). Hierarchy comes from size and colour, not boldness */
+  --weight: 400;
+  --text-sm: 12px;
+  --lh-sm: 16px;
+  --text-md: 14px;
+  --lh-md: 20px;
+  --text-lg: 16px;
+  --lh-lg: 24px;
+
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-weight: var(--weight);
+  font-size: var(--text-md);
+  line-height: var(--lh-md);
+  color-scheme: light;
+}
+
+/* Nothing goes above 400 unless explicitly asked for. */
+b,
+strong,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+th {
+  font-weight: var(--weight);
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.app {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.main {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* --- header: 36px tabs + 4px padding = 44px bar, plus a 1px hairline under it --- */
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  padding: var(--s1) var(--s3);
+  background: var(--sidebar);
+  border-bottom: 1px solid var(--surface);
+}
+
+.header-item {
+  padding: var(--s2) var(--s3);
+  border: 0;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--text-muted);
+  line-height: var(--lh-md);
+  cursor: pointer;
+}
+
+.header-item:hover {
+  color: var(--text);
+}
+
+.header-item[aria-current='true'] {
+  background: var(--surface);
+  color: var(--text);
+}
+
+/* --- side list: the left column of Canvas and Pages --- */
+.side-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  padding: var(--s3) var(--s2);
+  overflow-y: auto;
+  border-right: 1px solid var(--surface);
+  background: var(--bg);
+}
+
+.side-list-new {
+  margin-bottom: var(--s2);
+  padding: var(--s2) var(--s3);
+  border: 0;
+  border-radius: var(--r-pill);
+  background: var(--text);
+  color: #fff;
+  cursor: pointer;
+}
+
+.side-list-item {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  padding: var(--s2) var(--s3);
+  border: 0;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--text-muted);
+  line-height: var(--lh-md);
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.side-list-name {
+  flex: 0 0 auto;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Project tags: small and grey after the name, cut off first when the column is narrow. */
+.side-list-tags {
+  flex: 1 1 0; /* the name keeps its full width; tags get what's left */
+  min-width: 0;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--lh-sm);
+}
+
+.side-list-item:hover {
+  color: var(--text);
+}
+
+.side-list-item[aria-current='true'],
+.side-list-item[data-selected] {
+  background: var(--surface);
+  color: var(--text);
+}
+
+/* --- right-click menu: 4px padding around 8px-radius items, so the menu gets 12px --- */
+.context-menu {
+  position: fixed;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  min-width: 160px;
+  padding: var(--s1);
+  background: var(--bg);
+  border-radius: var(--r-lg);
+  box-shadow:
+    0 0 0 1px var(--surface),
+    0 var(--s2) var(--s6) rgb(0 0 0 / 0.12);
+}
+
+.context-menu-item {
+  padding: var(--s2) var(--s3);
+  border: 0;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--text);
+  line-height: var(--lh-md);
+  text-align: left;
+  cursor: pointer;
+}
+
+.context-menu-item:hover,
+.context-menu-item:focus-visible {
+  background: var(--surface);
+  outline: none;
+}
+
+.context-menu-item[data-danger] {
+  color: var(--danger);
+}
+
+/* Rename field: same size as the item it replaces, with a hairline ring instead of a border. */
+.side-list-input {
+  min-width: 0;
+  background: var(--bg);
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--surface-hover);
+  outline: none;
+  cursor: text;
+}
+
+/* --- canvas: list | canvas --- */
+.canvas-layout {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 180px 1fr;
+}
+
+.canvas-area {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* --- pages: list | code | preview --- */
+.pages {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 180px minmax(320px, 1fr) minmax(320px, 1fr);
+}
+
+.pages-code {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--editor);
+}
+
+.pages-header {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  padding: var(--s2) var(--s3);
+  background: var(--bg);
+}
+
+.pages-name {
+  flex: 1;
+  min-width: 0;
+  padding: var(--s1) var(--s2);
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text);
+  font-size: var(--text-lg);
+  line-height: var(--lh-lg);
+}
+
+.pages-name:hover,
+.pages-name:focus {
+  border-color: var(--surface-hover);
+  outline: none;
+}
+
+.pages-save {
+  font-size: var(--text-sm);
+  line-height: var(--lh-sm);
+  color: var(--text-muted);
+}
+
+.pages-save[data-state='error'] {
+  color: var(--danger);
+}
+
+.pages-tabs {
+  display: flex;
+  gap: var(--s1);
+  padding: 0 var(--s2);
+  background: var(--bg);
+}
+
+.pages-tab {
+  padding: var(--s2) var(--s4);
+  border: 0;
+  border-radius: var(--r-md) var(--r-md) 0 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--lh-sm);
+  cursor: pointer;
+}
+
+.pages-tab[aria-selected='true'] {
+  background: var(--editor);
+  color: var(--text);
+}
+
+.code-editor {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.code-editor .cm-editor {
+  height: 100%;
+  font-size: var(--text-md);
+  line-height: var(--lh-md);
+}
+
+.pages-preview {
+  min-width: 0;
+  background: var(--bg);
+}
+
+.pages-preview iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  /* The page itself decides its colours; the frame stays light before it loads. */
+  color-scheme: light;
+}
+
+.pages-empty {
+  grid-column: 2 / -1;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  color: var(--text-muted);
+}
+
+/* Canvas background matches the app instead of tldraw's default. */
+.tl-theme__light {
+  --tl-color-background: var(--bg);
+}
+
+/* --- toolbar: pill buttons inside a pill, so the curves stay concentric --- */
+.toolbar {
+  position: absolute;
+  bottom: var(--s4);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: var(--s1);
+  padding: var(--s1);
+  background: var(--surface);
+  border-radius: var(--r-pill);
+  pointer-events: all;
+  box-shadow: var(--shadow);
+}
+
+/* Icon buttons: 20px icon + 8px padding = 36px circle. */
+.toolbar-button {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: var(--s2);
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.toolbar-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Tooltip: name + shortcut, shown straight away on hover or keyboard focus. */
+.toolbar-button::after {
+  content: attr(data-tooltip) '  ' attr(data-kbd);
+  position: absolute;
+  bottom: calc(100% + var(--s2));
+  left: 50%;
+  transform: translateX(-50%);
+  padding: var(--s1) var(--s2);
+  border-radius: var(--r-md);
+  background: var(--text);
+  color: var(--bg);
+  font-size: var(--text-sm);
+  line-height: var(--lh-sm);
+  white-space: pre;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.toolbar-button:hover::after,
+.toolbar-button:focus-visible::after {
+  visibility: visible;
+}
+
+.toolbar-button:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.toolbar-button[aria-pressed='true'] {
+  background: var(--text);
+  color: #fff;
+}
+
+.notification {
+  position: absolute;
+  top: var(--s4);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: var(--s3) var(--s4);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: var(--r-lg);
+  pointer-events: all;
+}
+
+/* --- link cards (restyled tldraw bookmark) ---
+   Still one item on the canvas, but it reads as two pieces:
+   the preview image, looking like any pasted image, and below it a separate rounded text card. */
+.tl-bookmark__container {
+  gap: var(--s2);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  overflow: visible;
+  /* !important because tldraw sets its own shadow inline. The shadow lives on the text card instead. */
+  box-shadow: none !important;
+}
+
+/* Plain image: no frame, corners or shadow, same as a pasted image. Takes the height left over
+   (the item's height follows the image's shape, see LinkCardShape.ts). */
+.tl-bookmark__image_container {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.tl-bookmark__image {
+  border: 0;
+}
+
+/* The text card: its own rounded box with the standard shadow. */
+.tl-bookmark__copy_container {
+  flex: 0 0 auto;
+  border-radius: var(--r-xl);
+  background: var(--bg);
+  box-shadow: var(--shadow);
+}
+
+.tl-bookmark__heading {
+  font-weight: var(--weight);
+}
+
+/* --- hover video --- */
+.hover-video {
+  background: #000;
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+
+.hover-video video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.media-placeholder {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--lh-sm);
+}
+
+/* --- canvas loading / error --- */
+.canvas-message {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.canvas-message-detail {
+  font-size: var(--text-sm);
+  line-height: var(--lh-sm);
+  opacity: 0.7;
+}
+
+.context-menu-footer {
+  margin: var(--s1) 0 0;
+  padding: var(--s2) var(--s3) var(--s1);
+  border-top: 1px solid var(--surface);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--lh-sm);
+}
+
+/* --- notepad: list | writing page --- */
+.notepad {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 180px 1fr;
+}
+
+.notepad-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Formatting bar: 4px padding around 8px-radius buttons, so the bar gets 12px. */
+.notepad-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  margin: var(--s3) auto 0;
+  padding: var(--s1);
+  border-radius: var(--r-lg);
+  background: var(--bg);
+  box-shadow: var(--shadow);
+}
+
+.notepad-bar-button {
+  min-width: 32px;
+  padding: var(--s1) var(--s2);
+  border: 0;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--text-muted);
+  line-height: var(--lh-md);
+  cursor: pointer;
+}
+
+.notepad-bar-button:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.notepad-bar-button[aria-pressed='true'] {
+  background: var(--text);
+  color: var(--bg);
+}
+
+/* The B button shows real bold, the one place the UI hints at it. */
+.notepad-bar-button b {
+  font-weight: 700;
+}
+
+.notepad-save {
+  min-width: 80px;
+  padding: 0 var(--s2);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--lh-sm);
+  text-align: right;
+}
+
+.notepad-save[data-state='error'] {
+  color: var(--danger);
+}
+
+.notepad-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  cursor: text;
+}
+
+/* The writing column: centred, with a left margin wide enough for the hover timestamps. */
+.notepad-page {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: var(--s8) var(--s6) 160px 160px;
+}
+
+.notepad-doc {
+  outline: none;
+  font-family: Helvetica, 'Helvetica Neue', Arial, sans-serif;
+  font-size: var(--text-lg);
+  line-height: var(--lh-lg);
+  color: var(--text);
+}
+
+.notepad-doc > * {
+  position: relative;
+  margin: 0 0 var(--s3);
+}
+
+/* Hover a block to see when it was last edited, in the left margin. */
+.notepad-doc > [data-time]::before {
+  content: attr(data-time);
+  position: absolute;
+  right: calc(100% + var(--s4));
+  top: var(--s1);
+  white-space: nowrap;
+  color: var(--text-muted);
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: var(--text-sm);
+  line-height: var(--lh-sm);
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.notepad-doc > [data-time]:hover::before {
+  visibility: visible;
+}
+
+/* Bold in notes is real bold: it's formatting I chose (style.md §2 exception). */
+.notepad-doc strong {
+  font-weight: 700;
+}
+
+.notepad-doc h1 {
+  font-size: 32px;
+  line-height: 40px;
+  margin-top: var(--s6);
+}
+
+.notepad-doc h2 {
+  font-size: 24px;
+  line-height: 32px;
+  margin-top: var(--s4);
+}
+
+.notepad-doc ul,
+.notepad-doc ol {
+  padding-left: var(--s6);
+}
+
+.notepad-doc li p {
+  margin: 0;
+}
+
+.notepad-doc blockquote {
+  padding-left: var(--s4);
+  border-left: 2px solid var(--surface-hover);
+  color: var(--text-muted);
+}
+
+.notepad-doc code {
+  padding: 0 var(--s1);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  font-size: var(--text-md);
+}
+
+.notepad-doc pre {
+  padding: var(--s3) var(--s4);
+  border-radius: var(--r-md);
+  background: var(--surface);
+}
+
+.notepad-doc pre code {
+  padding: 0;
+  background: none;
+}
+
+.notepad-doc a {
+  color: inherit;
+  text-decoration-color: var(--text-muted);
+}
+
+.notepad-doc p.is-editor-empty:first-child::after {
+  content: 'Start writing…';
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+/* Pasted images and videos: plain, like on the canvas. */
+.note-media {
+  margin: 0 0 var(--s3);
+}
+
+.note-media img,
+.note-media video {
+  display: block;
+  max-width: 100%;
+  max-height: 600px;
+}
+
+.ProseMirror-selectednode.note-media,
+.ProseMirror-selectednode.note-link {
+  outline: 2px solid var(--text-muted);
+  outline-offset: var(--s1);
+}
+
+/* Link cards: the same two pieces as on the canvas (plain image, then rounded text card). */
+.note-link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  width: 300px;
+  color: inherit;
+  text-decoration: none;
+  cursor: default;
+}
+
+.ProseMirror-selectednode.note-link {
+  border-radius: var(--r-xl);
+}
+
+.note-link-image {
+  display: block;
+  width: 100%;
+  max-height: 400px;
+  object-fit: cover;
+}
+
+.note-link-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  padding: var(--s3) var(--s4);
+  border-radius: var(--r-xl);
+  background: var(--bg);
+  box-shadow: var(--shadow);
+  font-size: var(--text-md);
+  line-height: var(--lh-md);
+}
+
+.note-link-desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--lh-sm);
+}
+
+.note-link-source {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--lh-sm);
+}
+
+.note-link-source img {
+  width: 16px;
+  height: 16px;
+  border-radius: var(--r-sm);
+}

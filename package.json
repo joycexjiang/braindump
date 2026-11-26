@@ -1,0 +1,35 @@
+{
+  "name": "canvas",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -k -n server,client -c magenta,cyan \"npm:dev:server\" \"npm:dev:client\"",
+    "dev:server": "tsx watch src/server/index.ts",
+    "dev:client": "vite",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test 'src/**/*.test.ts'"
+  },
+  "dependencies": {
+    "@codemirror/lang-css": "^6.3.1",
+    "@codemirror/lang-html": "^6.4.12",
+    "@codemirror/lang-javascript": "^6.2.5",
+    "@heroicons/react": "^2.2.0",
+    "@hono/node-server": "^2.1.11",
+    "codemirror": "^6.0.2",
+    "hono": "^4.13.19",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "tldraw": "^5.6.2"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "concurrently": "^10.0.7",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8"
+  }
+}
