@@ -6,7 +6,7 @@
 ## 1. Light mode, always. Never dark.
 
 - The app is light. There is no dark theme and no following the system setting. That covers the canvas, the code editor and every panel.
-- Backgrounds: `#ffffff` main area, `#f6f6f6` sidebar, `#efefef` raised surfaces, `#e4e4e4` hover.
+- Backgrounds: `#ffffff` main area, `#f6f6f6` sidebar, `#efefef` raised surfaces, `#e4e4e4` hover, `#f7f7f7` canvas background.
 - Text: `#121212` for primary, `#6a6a6a` for secondary.
 - Exception: content I bring in (screenshots, a page I write in Pages) keeps its own colours. The app around it stays light.
 
@@ -36,7 +36,7 @@
 ## 4.1 Shadows
 
 - **One shadow token: `--shadow`** (`0 0 16px` at 8% black). Minimal, soft and even all around, not a heavy drop shadow under the element.
-- Whenever a shadow is asked for, use `--shadow`. Don't write a new shadow value unless I ask for a different one.
+- Whenever a shadow is asked for, use `--shadow`. On SVG (where box-shadow doesn't work, e.g. clusters) use `--shadow-drop`, the same shadow as a filter. Don't write a new shadow value unless I ask for a different one.
 
 ## 5. Web, not flash
 

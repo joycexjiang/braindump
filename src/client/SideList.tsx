@@ -244,13 +244,13 @@ export function SideList({
   )
 }
 
-interface Action {
+export interface Action {
   label: string
   danger?: boolean
   run: () => void
 }
 
-function ContextMenu({
+export function ContextMenu({
   x,
   y,
   actions,

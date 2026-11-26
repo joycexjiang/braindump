@@ -31,6 +31,9 @@ import { notify } from './notify'
 import { dayName, localDate } from '../shared/canvasName'
 import { SideList } from './SideList'
 import { DayScroll } from './days/DayScroll'
+import { PrettyImageShapeUtil } from './shapes/PrettyImageShape'
+import { CanvasContextMenu } from './canvas/ContextMenu'
+import { Grid } from './canvas/Grid'
 import { registerPasteHandlers } from './paste/handlers'
 import { HoverVideoShapeUtil } from './shapes/HoverVideoShape'
 import { LinkCardShapeUtil } from './shapes/LinkCardShape'
@@ -61,10 +64,12 @@ const embedDefinitions = DEFAULT_EMBED_DEFINITIONS.filter((d) => EMBEDS.has(d.ty
       }
 )
 
-const shapeUtils = [HoverVideoShapeUtil, LinkCardShapeUtil, EmbedShapeUtil.configure({ embedDefinitions })]
+const shapeUtils = [PrettyImageShapeUtil, HoverVideoShapeUtil, LinkCardShapeUtil, EmbedShapeUtil.configure({ embedDefinitions })]
 
 const components: TLComponents = {
   InFrontOfTheCanvas: Toolbar,
+  ContextMenu: CanvasContextMenu,
+  Grid, // faint lines instead of dots (canvas/Grid.tsx)
 }
 
 const overrides: TLUiOverrides = {
@@ -347,7 +352,7 @@ function CanvasEditor({
 
   const handleMount = (editor: Editor) => {
     registerPasteHandlers(editor)
-    // Dot grid, always on. Items snap to it; 16px keeps it on style.md's 4px grid.
+    // Grid mode, always on (drawn as faint lines, see canvas/Grid.tsx). Items snap to it; 16px keeps it on style.md's 4px grid.
     editor.updateInstanceState({ isGridMode: true })
     if (editor.getDocumentSettings().gridSize !== 16) editor.updateDocumentSettings({ gridSize: 16 })
     // Figma-style: always snap to other items' edges, centres and equal gaps (hold ⌘ to skip).
