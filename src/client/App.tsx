@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   DEFAULT_EMBED_DEFINITIONS,
   EmbedShapeUtil,
@@ -30,6 +30,7 @@ import {
 import { notify } from './notify'
 import { dayName, localDate } from '../shared/canvasName'
 import { SideList } from './SideList'
+import { DayScroll } from './days/DayScroll'
 import { registerPasteHandlers } from './paste/handlers'
 import { HoverVideoShapeUtil } from './shapes/HoverVideoShape'
 import { LinkCardShapeUtil } from './shapes/LinkCardShape'
@@ -120,6 +121,9 @@ export function App() {
 // Day pages: today's page is always at the top of the list. Until something is added to it,
 // it's only a placeholder (nothing on disk); the first paste or drawing creates the real page.
 // Opening the app on a new day starts on today's page; the same day reopens what I last picked.
+//
+// "All days" swaps the canvas for the day-scroll view. Opening a page from there and pressing
+// Esc (with nothing selected) comes back to the scroll at the same spot.
 function CanvasView() {
   const [canvases, setCanvases] = useState<CanvasMeta[] | null>(null)
   // `key` stays the same when today's placeholder turns into the real page, so the editor
@@ -127,6 +131,10 @@ function CanvasView() {
   const [current, setCurrent] = useState<{ id: string; key: string } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const today = useToday()
+  const [mode, setMode] = useState<'canvas' | 'days'>('canvas')
+  const [fromDays, setFromDays] = useState(false)
+  const [daysKey, setDaysKey] = useState(0)
+  const daysScrollTop = useRef<number | null>(null)
 
   const todayPage = canvases?.find((c) => c.kind === 'day' && c.date === today)
   const items = canvases ? (todayPage ? canvases : [draftDay(today), ...canvases]) : []
@@ -159,9 +167,18 @@ function CanvasView() {
     setCurrent((c) => (c && isDraftId(c.id) && c.id !== draftDay(today).id ? { id: todayId, key: todayId } : c))
   }, [today, todayId])
 
-  const open = (id: string) => {
+  const open = (id: string, viaDays = false) => {
     setCurrent({ id, key: id })
     setLastOpened(id, localDate())
+    setMode('canvas')
+    setFromDays(viaDays)
+  }
+
+  /** Opens the day scroll: at today, or (`restore`) where I left it. */
+  const showDays = (restore: boolean) => {
+    if (!restore) daysScrollTop.current = null
+    setDaysKey((k) => k + 1)
+    setMode('days')
   }
 
   /** Today's placeholder became a real page (first edit, or a rename). */
@@ -240,15 +257,33 @@ function CanvasView() {
           placeholder: isDraftId(c.id),
           tags: c.tags,
         }))}
-        currentId={current?.id ?? null}
+        currentId={mode === 'canvas' ? (current?.id ?? null) : null}
+        topItem={{ label: 'All days', current: mode === 'days', title: 'Every canvas by date', onClick: () => showDays(false) }}
         onNew={create}
-        onOpen={open}
+        onOpen={(id) => open(id)}
         onRename={(id, name) => update(id, { name })}
         onTags={(id, tags) => update(id, { tags })}
         onDelete={remove}
       />
       <div className="canvas-area">
-        {current && <CanvasEditor key={current.key} id={current.id} onDayCreated={onDayCreated} />}
+        {mode === 'days' ? (
+          <DayScroll
+            key={daysKey}
+            pages={items}
+            initialScrollTop={daysScrollTop.current}
+            onScrollTopChange={(top) => (daysScrollTop.current = top)}
+            onOpen={(id) => open(id, true)}
+          />
+        ) : (
+          current && (
+            <CanvasEditor
+              key={current.key}
+              id={current.id}
+              onDayCreated={onDayCreated}
+              onEscape={fromDays ? () => showDays(true) : undefined}
+            />
+          )
+        )}
       </div>
     </div>
   )
@@ -271,8 +306,19 @@ function useToday() {
 
 // One canvas. Switching canvases remounts this: the old one saves on the way out,
 // and the new one loads from ~/Diary/canvases once that save has landed.
-function CanvasEditor({ id, onDayCreated }: { id: string; onDayCreated: (meta: CanvasMeta) => void }) {
+function CanvasEditor({
+  id,
+  onDayCreated,
+  onEscape,
+}: {
+  id: string
+  onDayCreated: (meta: CanvasMeta) => void
+  /** Called on Esc when there's nothing left for tldraw to cancel (no selection, no tool, no edit). */
+  onEscape?: () => void
+}) {
   const [record, setRecord] = useState<CanvasRecord | null>(null)
+  const onEscapeRef = useRef(onEscape)
+  onEscapeRef.current = onEscape
   const [error, setError] = useState<string | null>(null)
 
   // Loads once per mount. `id` only changes without a remount when today's placeholder
@@ -310,9 +356,26 @@ function CanvasEditor({ id, onDayCreated }: { id: string; onDayCreated: (meta: C
     restoreCamera(editor, record.id)
     // Opening a canvas from the list leaves focus on the list, so shortcuts (P, ⌘V…) wouldn't
     // reach the canvas until it was clicked. Hand focus over, unless I'm typing a name or tags.
-    if (!document.activeElement?.closest('input, textarea, [contenteditable="true"]')) editor.focus()
+    // (tldraw already counts itself as focused on mount, so editor.focus() alone does nothing;
+    // the container needs the browser's focus too.)
+    if (!document.activeElement?.closest('input, textarea, [contenteditable="true"]')) {
+      editor.focus()
+      editor.getContainer().focus()
+    }
     if (import.meta.env.DEV) Object.assign(window, { editor })
-    return attachAutosave(editor, record.id, onDayCreated)
+    // Runs before tldraw sees the key: the first Esc still deselects or cancels as usual.
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape' || !onEscapeRef.current || e.defaultPrevented) return
+      if ((e.target as HTMLElement | null)?.closest('input, textarea, [contenteditable="true"]')) return
+      if (editor.getSelectedShapeIds().length || editor.getEditingShapeId() || !editor.isIn('select.idle')) return
+      onEscapeRef.current()
+    }
+    window.addEventListener('keydown', onKey, true)
+    const stopAutosave = attachAutosave(editor, record.id, onDayCreated)
+    return () => {
+      window.removeEventListener('keydown', onKey, true)
+      stopAutosave()
+    }
   }
 
   return (

@@ -177,6 +177,11 @@ input {
   color: var(--text);
 }
 
+/* "All days": a fixed row, set apart from the canvases below it. */
+.side-list-top {
+  margin-bottom: var(--s2);
+}
+
 /* --- right-click menu: 4px padding around 8px-radius items, so the menu gets 12px --- */
 .context-menu {
   position: fixed;
@@ -763,4 +768,261 @@ input {
   width: 16px;
   height: 16px;
   border-radius: var(--r-sm);
+}
+
+/* --- day scroll (plan.md §4.0): every canvas as a page, oldest at the top --- */
+.days {
+  position: absolute;
+  inset: 0;
+}
+
+.days-scroll {
+  position: relative; /* pages' offsetTop is measured against this */
+  height: 100%;
+  overflow-y: auto;
+  /* room for the scrubber on the right and the date pill at the bottom */
+  padding: 0 calc(var(--s8) * 2) calc(var(--s8) * 3) 0;
+  box-sizing: border-box;
+}
+
+/* Stacked headers. Zero height and sticky, so the pages below never move because of it. */
+.days-stack-anchor {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  height: 0;
+}
+
+.days-stack {
+  overflow: hidden;
+  background: var(--bg);
+}
+
+/* 32px strip: 20px line + 12px, with the 1px hairline inside the height. */
+.day-header {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  width: 100%;
+  height: var(--s8);
+  padding: 0 var(--s6);
+  border: 0;
+  border-bottom: 1px solid var(--surface);
+  background: var(--bg);
+  color: var(--text);
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.day-header:hover {
+  background: var(--sidebar);
+}
+
+.day-header-name {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.day-header-date,
+.day-header-tags {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--lh-sm);
+}
+
+.day-header-tags {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+}
+
+.day-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s6);
+  padding: var(--s4) var(--s6) var(--s8);
+  cursor: pointer;
+}
+
+.day-empty {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.day-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.day-row-title {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--lh-sm);
+}
+
+.day-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+
+.day-tile {
+  box-sizing: border-box;
+  height: 120px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  object-fit: cover;
+  overflow: hidden;
+}
+
+.day-tile-link {
+  display: flex;
+  width: 240px;
+}
+
+.day-tile-link img {
+  flex: 0 0 auto;
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+}
+
+.day-tile-link-text,
+.day-tile-text {
+  padding: var(--s3);
+}
+
+.day-tile-link-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--s2);
+  min-width: 0;
+}
+
+.day-tile-link-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: var(--text-sm);
+  line-height: var(--lh-sm);
+}
+
+.day-tile-link-host {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--lh-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 5 lines of 16px + 24px padding = 104px, inside the 120px tile */
+.day-tile-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  width: 240px;
+  font-size: var(--text-sm);
+  line-height: var(--lh-sm);
+  white-space: pre-line;
+}
+
+/* Timeline scrubber on the right edge. Ticks hang off the right; month labels sit to their left. */
+.days-scrubber {
+  position: absolute;
+  top: var(--s8);
+  right: 0;
+  bottom: calc(var(--s8) * 2);
+  z-index: 3;
+  width: calc(var(--s8) * 2);
+  cursor: ns-resize;
+  touch-action: none;
+  user-select: none;
+}
+
+.days-scrubber-track {
+  position: absolute;
+  inset: 0 var(--s3) 0 0;
+}
+
+.days-scrubber-tick {
+  position: absolute;
+  right: 0;
+  height: 1px;
+  background: var(--text-muted);
+}
+
+.days-scrubber-tick[data-tone='empty'] {
+  background: var(--surface-hover);
+}
+
+.days-scrubber-tick[data-tone='current'] {
+  background: var(--text);
+}
+
+.days-scrubber-month {
+  position: absolute;
+  left: 0;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--lh-sm);
+}
+
+.days-scrubber-pill {
+  position: absolute;
+  right: calc(100% + var(--s2));
+  transform: translateY(-50%);
+  padding: var(--s1) var(--s3);
+  border-radius: var(--r-pill);
+  background: var(--bg);
+  box-shadow: var(--shadow);
+  font-size: var(--text-sm);
+  line-height: var(--lh-sm);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Bottom pill with the current date. Same pill shape as the canvas toolbar. */
+.days-pill {
+  position: absolute;
+  bottom: var(--s4);
+  left: 50%;
+  z-index: 3;
+  transform: translateX(-50%);
+  padding: var(--s1);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.days-pill-button {
+  padding: var(--s2) var(--s4);
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.days-pill-button:hover {
+  background: var(--surface-hover);
+}
+
+/* The real date input sits under the pill so the browser's picker opens there. */
+.days-pill-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
 }

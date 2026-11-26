@@ -232,7 +232,7 @@ First, work out *why* it failed. Each cause has a different next step:
 - ~~Canvas with image, bookmark card, hover-video and text shapes.~~
 - ~~Paste with auto layout, free drag, lines/arrows, pen, clusters.~~
 - ~~Keyboard shortcuts. Multiple canvases (day pages + named canvases) in the sidebar. Local persistence.~~
-- **Day-scroll view** (§4.0): stacked day headers, clusters as titled rows, right-edge timeline scrubber, click in/out of a page. Search can wait until phase 2.
+- ~~**Day-scroll view** (§4.0): stacked day headers, clusters as titled rows, right-edge timeline scrubber, click in/out of a page. Search can wait until phase 2.~~ Opens from **All days** in the canvas list; newest at the bottom.
 - Spotify-web-like visual design.
 - ✅ Done when: I can rebuild my "graphic design of the body" Figma page here faster than in Figma, with videos and links included.
 

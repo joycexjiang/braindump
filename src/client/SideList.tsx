@@ -45,11 +45,25 @@ interface Props {
   onDelete: (ids: string[]) => void
   /** Turns on the Tags menu item. */
   onTags?: (id: string, tags: string[]) => void
+  /** A fixed row above the items, e.g. Canvas's "All days". */
+  topItem?: { label: string; current: boolean; title?: string; onClick: () => void }
 }
 
 type Menu = { x: number; y: number; ids: string[] }
 
-export function SideList({ label, noun, newLabel, items, currentId, onNew, onOpen, onRename, onDelete, onTags }: Props) {
+export function SideList({
+  label,
+  noun,
+  newLabel,
+  items,
+  currentId,
+  onNew,
+  onOpen,
+  onRename,
+  onDelete,
+  onTags,
+  topItem,
+}: Props) {
   const [editing, setEditing] = useState<{ id: string; field: 'name' | 'tags' } | null>(null)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [anchor, setAnchor] = useState<string | null>(null)
@@ -161,6 +175,17 @@ export function SideList({ label, noun, newLabel, items, currentId, onNew, onOpe
       <button type="button" className="side-list-new" title="⌥N" onClick={onNew}>
         {newLabel}
       </button>
+      {topItem && (
+        <button
+          type="button"
+          className="side-list-item side-list-top"
+          aria-current={topItem.current}
+          title={topItem.title}
+          onClick={topItem.onClick}
+        >
+          <span className="side-list-name">{topItem.label}</span>
+        </button>
+      )}
       {items.map((item) =>
         editing?.id === item.id ? (
           <input
@@ -182,7 +207,8 @@ export function SideList({ label, noun, newLabel, items, currentId, onNew, onOpe
             type="button"
             className="side-list-item"
             aria-current={currentId === item.id}
-            data-selected={selected.has(item.id) || undefined}
+            // While the top row is open (e.g. All days), only it shows as current.
+            data-selected={(!topItem?.current && selected.has(item.id)) || undefined}
             title="Double-click to rename"
             onClick={(e) => onItemClick(e, item.id)}
             onDoubleClick={() => setEditing({ id: item.id, field: 'name' })}

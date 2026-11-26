@@ -6,6 +6,7 @@ import { randomUUID } from 'node:crypto'
 import { mkdir, readdir, readFile, rename, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { DATE_RE, dayName, localDate, timestampName } from '../shared/canvasName.ts'
+import { summarizeSnapshot, type CanvasSummary } from '../shared/canvasSummary.ts'
 
 export type CanvasKind = 'day' | 'named'
 
@@ -96,6 +97,19 @@ export function canvasesRoutes(dataDir: string) {
   const app = new Hono()
 
   app.get('/', async (c) => c.json(await list()))
+
+  // Every canvas boiled down to clusters and items, for the day-scroll view: { [id]: summary }.
+  // Waits for saves still being written, so a canvas I just left shows its latest state.
+  app.get('/summaries', async (c) => {
+    await ready
+    await Promise.allSettled([...writeQueue.values()])
+    const out: Record<string, CanvasSummary> = {}
+    for (const name of (await readdir(dir)).filter((n) => n.endsWith('.json'))) {
+      const record = await read(name.slice(0, -'.json'.length)).catch(() => null)
+      if (record) out[record.id] = summarizeSnapshot(record.snapshot)
+    }
+    return c.json(out)
+  })
 
   app.post('/', async (c) => {
     const body = (await c.req.json().catch(() => ({}))) as Partial<CanvasMeta>

@@ -2,6 +2,7 @@
 import { getSnapshot, type Editor, type TLStoreSnapshot } from 'tldraw'
 import { notify } from '../notify'
 import { dayName } from '../../shared/canvasName'
+import type { CanvasSummary } from '../../shared/canvasSummary'
 
 export interface CanvasRecord {
   id: string
@@ -127,6 +128,19 @@ function save(id: string, snapshot: TLStoreSnapshot, opts: { keepalive?: boolean
     if (inFlight.get(id) === next) inFlight.delete(id)
   })
   return next
+}
+
+/** Resolves once every save that has been started is done (used before reading summaries). */
+export function whenSaved(): Promise<void> {
+  return Promise.allSettled([...inFlight.values()]).then(() => {})
+}
+
+/** Clusters and items for every canvas, for the day-scroll view. */
+export async function getSummaries(): Promise<Record<string, CanvasSummary>> {
+  await whenSaved()
+  const res = await fetch('/api/canvases/summaries')
+  if (!res.ok) throw new Error(`${res.status} /api/canvases/summaries`)
+  return res.json()
 }
 
 const cameraKey = (id: string) => `canvas-camera:${id}`
