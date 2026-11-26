@@ -3,7 +3,8 @@ import { createShapeId, removeFrame, type Editor, type TLShapeId } from 'tldraw'
 
 // Smaller than the paste layout's row gap (24), so wrapping a row never touches the next one.
 const PADDING = 16
-export const DEFAULT_CLUSTER_NAME = 'Untitled cluster'
+/** New clusters start untitled; no title shows on the canvas until one is typed. */
+export const DEFAULT_CLUSTER_NAME = ''
 
 /** Wraps the selected items in a new titled cluster and starts editing its title. */
 export function wrapSelectionInCluster(editor: Editor): TLShapeId | null {

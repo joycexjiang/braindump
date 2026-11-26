@@ -33,6 +33,7 @@ import { dayName, localDate } from '../shared/canvasName'
 import { SideList } from './SideList'
 import { DayScroll } from './days/DayScroll'
 import { PrettyImageShapeUtil } from './shapes/PrettyImageShape'
+import { ClusterShapeUtil } from './shapes/ClusterShape'
 import { CanvasContextMenu } from './canvas/ContextMenu'
 import { Grid } from './canvas/Grid'
 import { registerPasteHandlers } from './paste/handlers'
@@ -65,7 +66,7 @@ const embedDefinitions = DEFAULT_EMBED_DEFINITIONS.filter((d) => EMBEDS.has(d.ty
       }
 )
 
-const shapeUtils = [PrettyImageShapeUtil, HoverVideoShapeUtil, LinkCardShapeUtil, EmbedShapeUtil.configure({ embedDefinitions })]
+const shapeUtils = [ClusterShapeUtil, PrettyImageShapeUtil, HoverVideoShapeUtil, LinkCardShapeUtil, EmbedShapeUtil.configure({ embedDefinitions })]
 
 const components: TLComponents = {
   InFrontOfTheCanvas: Toolbar,
