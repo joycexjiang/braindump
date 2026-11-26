@@ -116,6 +116,33 @@ input {
   color: var(--text);
 }
 
+/* Show/hide the left list. 20px icon + 8px padding = 36px, same as the toolbar buttons. */
+.header-toggle {
+  display: grid;
+  place-items: center;
+  padding: var(--s2);
+  margin-right: var(--s2);
+}
+
+.header-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* List hidden (⌘\): the content takes the full width in every section. */
+.app[data-list-hidden] .side-list {
+  display: none;
+}
+
+.app[data-list-hidden] .canvas-layout,
+.app[data-list-hidden] .notepad {
+  grid-template-columns: 1fr;
+}
+
+.app[data-list-hidden] .pages {
+  grid-template-columns: minmax(320px, 1fr) minmax(320px, 1fr);
+}
+
 /* --- side list: the left column of Canvas and Pages --- */
 .side-list {
   display: flex;

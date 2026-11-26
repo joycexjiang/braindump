@@ -7,6 +7,7 @@ import {
   type TLComponents,
   type TLUiOverrides,
 } from 'tldraw'
+import { ViewColumnsIcon } from '@heroicons/react/24/outline'
 import { PagesView } from './pages/PagesView'
 import { NotepadView } from './notepad/NotepadView'
 import { assetStore } from './assetStore'
@@ -96,11 +97,54 @@ const overlayUtils = [SmartGuidesOverlayUtil]
 type View = 'canvas' | 'notepad' | 'pages'
 const VIEW_LABELS: Record<View, string> = { canvas: 'Canvas', notepad: 'Notepad', pages: 'Code' }
 
+const LIST_HIDDEN_KEY = 'side-list-hidden'
+
+/** Whether the left lists are hidden (⌘\ or the header button). Remembered in this browser. */
+function useListHidden() {
+  const [hidden, setHidden] = useState(() => {
+    try {
+      return localStorage.getItem(LIST_HIDDEN_KEY) === '1'
+    } catch {
+      return false
+    }
+  })
+  useEffect(() => {
+    try {
+      localStorage.setItem(LIST_HIDDEN_KEY, hidden ? '1' : '0')
+    } catch {
+      // convenience only
+    }
+  }, [hidden])
+  useEffect(() => {
+    // ⌘\ like Figma's "hide UI". Capture phase, so the canvas and code editor don't swallow it.
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== '\\' || !(e.metaKey || e.ctrlKey) || e.altKey || e.shiftKey || e.repeat) return
+      e.preventDefault()
+      e.stopPropagation()
+      setHidden((h) => !h)
+    }
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
+  }, [])
+  return [hidden, setHidden] as const
+}
+
 export function App() {
   const [view, setView] = useState<View>('canvas')
+  const [listHidden, setListHidden] = useListHidden()
   return (
-    <div className="app">
+    <div className="app" data-list-hidden={listHidden || undefined}>
       <nav className="header" aria-label="Sections">
+        <button
+          type="button"
+          className="header-item header-toggle"
+          aria-pressed={!listHidden}
+          aria-label={listHidden ? 'Show list' : 'Hide list'}
+          title={`${listHidden ? 'Show' : 'Hide'} list (⌘\\)`}
+          onClick={() => setListHidden((h) => !h)}
+        >
+          <ViewColumnsIcon />
+        </button>
         {(['canvas', 'notepad', 'pages'] as const).map((v) => (
           <button
             key={v}
